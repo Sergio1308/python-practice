@@ -1,4 +1,3 @@
-""" Студент Гайдук Сергей КН-19-1"""
 import os
 import sys
 import datetime
@@ -8,7 +7,6 @@ from PyQt5.QtWidgets import QLabel, QPushButton, QVBoxLayout, QApplication, QMai
 from PyQt5.QtGui import QPixmap
 
 
-# order_list = []
 
 
 class Pizza:

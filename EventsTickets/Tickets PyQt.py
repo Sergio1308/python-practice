@@ -9,10 +9,17 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QLabel, QPushButton, QVBoxLayout, QApplication, QMainWindow, QWidget, \
     QHBoxLayout, QRadioButton
 
-DAYS_EVENT_LIMIT = 365
+DAYS_EVENT_LIMIT = 365  # Event cannot be scheduled for more than 365 days.
 
 
 class Tickets:
+    """
+    A class called Tickets which is used to represent the types of tickets to IT-events,
+    each ticket has a unique number and a price. This class contains a constructor to initialize
+    the data attributes and other methods that return values.
+    """
+    
+    # This is a dictionary, unique id is used as the key, ticket type and price is the key value.
     id_list = {
         uuid.uuid4(): ['Regular Ticket', 1],  # no discount
         uuid.uuid4(): ['Advance Ticket', 0.6],  # -40% discount
@@ -22,11 +29,18 @@ class Tickets:
 
     def __init__(self, description='', regular_ticket='Regular Ticket', advance_ticket='Advance Ticket',
                  late_ticket='Late Ticket', student_ticket='Student Ticket'):
+        """__init__ is a constructor with data members that uses the parameters to initialize the data attributes.
+
+        Keywords arguments:
+        :param description: ticket description (ticket type in string representation).
+        :param regular_ticket: first type of ticket - regular ticket.
+        :param advance_ticket: second type of ticket - advance ticket (purchased 60 or more days before the event).
+        :param late_ticket: third type of ticket - late ticket (purchased fewer than 10 days before the event).
+        :param student_ticket: fourth type of ticket - student ticket (for students only).
+
+        """
         with open('events.json') as f:
             self.data = json.load(f)
-
-        # print(self.data['Introduction to Python'][1])
-        # print(self.data.keys())
 
         self._regular_ticket = regular_ticket
         self._advance_ticket = advance_ticket
@@ -38,30 +52,44 @@ class Tickets:
         self.ticket_id = None  # unique id for each type of ticket
 
     def regular_ticket(self, event):
+        """Method attribute which returns a function for the first ticket type."""
+        
         self.ticket_id = self.getID(self._regular_ticket)
         self.ticket_price = self.data[event][1] * self.id_list[self.ticket_id][1]  # no discounts but the value is taken
         self.description = self._regular_ticket
         return self.regular_ticket
 
     def advance_ticket(self, event):
+        """Method attribute which returns a function for the second ticket type."""
+        
         self.ticket_id = self.getID(self._advance_ticket)
         self.ticket_price = int(self.data[event][1] * self.id_list[self.ticket_id][1])  # -40% of the regular price
         self.description = self._advance_ticket
         return self.advance_ticket
 
     def late_ticket(self, event):
+        """Method attribute which returns a function for the third ticket type."""
+        
         self.ticket_id = self.getID(self._late_ticket)
         self.ticket_price = int(self.data[event][1] * self.id_list[self.ticket_id][1])  # +10% of the regular price
         self.description = self._late_ticket
         return self.late_ticket
 
     def student_ticket(self, event):
+        """Method attribute which returns a function for the fourth ticket type."""
+        
         self.ticket_id = self.getID(self._student_ticket)
         self.ticket_price = int(self.data[event][1] * self.id_list[self.ticket_id][1])  # -50% of the regular price
         self.description = self._student_ticket
         return self.student_ticket
 
     def getPrice(self, value):
+        """Method attribute which returns the price of a specific ticket type and its description.
+
+        takes :param value: the type of ticket for which the price is being requested.
+        The value is specified as a function call.
+        """
+        
         ticket_prices = []
         for item in self.id_list:
             ticket_prices.append(f"{self.id_list[item][0]} --- "
@@ -69,23 +97,51 @@ class Tickets:
         return ticket_prices
 
     def getID(self, value):
+        """Method attribute which returns a unique id from the dictionary for the ticket.
+
+        takes :param value: ticket type name.
+        If the current id (key) has a value with index 0 equals the value we specified (ticket type)
+        then we return a unique ticket id (dictionary key).
+        """
+        
         for key in self.id_list:
             if self.id_list[key][0] == value:
                 return key
 
     def constructByNumber(self, value, event):
+        """Method attribute which construct a ticket by number.
+        Returns unique id, description and price (Pre-order).
+
+        takes :param value: ticket ID.
+        Unique ID can be recognized by the function getID().
+        """
+        
         ticket_type = self.id_list[value][0]
         ticket_price = int(self.data[event][1] * self.id_list[value][1])
         return value, ticket_type, ticket_price
 
 
 class Order(Tickets):
+    """
+    A class called Order that form customer orders through inheritance of Tickets class and
+    contains a constructor to initialize the data attributes, method getOrder which selects the required ticket type.
+    """
 
     def __init__(self):
+        """__init__ is a constructor with data members that uses the parameters
+        to initialize the data attributes.
+        """
+        
         super().__init__()
         self.orderDate = datetime.strftime(datetime.now(), "%d.%m.%Y %H:%M:%S")
 
     def getOrder(self, value, event):
+        """Method attribute which forms an order.
+
+        takes :param value: order type (Student or Adult).
+        If the order type is "Student", ticket type will be "Student Ticket".
+        """
+        
         try:
             if value is not 'Student' and value is not 'Adult':
                 raise ValueError(f'Invalid value. Current parameter cannot be interpreted as an order type. '
@@ -118,8 +174,15 @@ class Order(Tickets):
 
 
 class MainWindow(QWidget):
+    """
+    A class called MainWindow which displays all widgets and GUI elements.
+    """
 
     def __init__(self, parent=None):
+        """__init__ is a constructor with data members that uses the parameters
+        to initialize the data attributes.
+        """
+        
         super().__init__(parent)
 
         self.setGeometry(500, 200, 1000, 700)
@@ -207,7 +270,6 @@ class MainWindow(QWidget):
                 self.eventText = self.events[i]
 
     def rButton_order(self):
-        # self.pushButton.setEnabled(True)
         self.pushButton_buildByNumber.setEnabled(True)
         self.o = Order()
         self.get_sender = self.sender()
